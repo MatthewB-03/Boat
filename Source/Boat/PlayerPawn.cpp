@@ -20,6 +20,10 @@ APlayerPawn::APlayerPawn()
 	// Auto possess player 0
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
+	// Define collision channel
+	CollisionParams = FCollisionQueryParams();
+	CollisionParams.bTraceComplex = true;
+
 }
 
 // Called when the game starts or when spawned
@@ -49,9 +53,22 @@ void APlayerPawn::Tick(float DeltaTime)
 	LookUp = GetInputAxisValue("LookUp");
 	LookRight = GetInputAxisValue("LookRight");
 
-	// Move player
-	SetActorLocation(GetActorLocation() + GetActorForwardVector() * MoveForward * MoveSpeed * DeltaTime * FVector(1.0f, 1.0f, 0.0f));
-	SetActorLocation(GetActorLocation() + GetActorRightVector() * MoveRight * MoveSpeed * DeltaTime * FVector(1.0f, 1.0f, 0.0f));
+	// Check for forwards collision
+	FVector Movement = GetActorForwardVector() * MoveForward * MoveSpeed * DeltaTime * FVector(1.0f, 1.0f, 0.0f);
+	FHitResult Hit;
+	if (!GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation() + FVector(0.0f, 0.0f, CollisionYOffset), GetActorLocation() + FVector(0.0f, 0.0f, CollisionYOffset) + Movement.GetSafeNormal() * CollisionRadius, ECC_Pawn, CollisionParams))
+	{
+		// Move player forwards
+		SetActorLocation(GetActorLocation() + Movement);
+	}
+
+	// Check for sideways collision
+	Movement = GetActorRightVector() * MoveRight * MoveSpeed * DeltaTime * FVector(1.0f, 1.0f, 0.0f);
+	if (!GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation() + FVector(0.0f, 0.0f, CollisionYOffset), GetActorLocation() + FVector(0.0f, 0.0f, CollisionYOffset) + Movement.GetSafeNormal() * CollisionRadius, ECC_Pawn, CollisionParams))
+	{
+		// Move player sideways
+		SetActorLocation(GetActorLocation() + Movement);
+	}
 
 	// Rotate player
 	SetActorRotation(GetActorRotation() + LookUp * TurnSpeed * DeltaTime * FRotator(1.0f, 0.0f, 0.0f));

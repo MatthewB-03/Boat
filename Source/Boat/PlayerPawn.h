@@ -19,12 +19,16 @@ public:
 	APlayerPawn();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float MoveSpeed = 300;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float TurnSpeed = 100;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float MoveForward;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float MoveRight;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float LookUp;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float LookRight;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float CollisionRadius = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float CollisionYOffset = -100;
+	float MoveForward;
+	float MoveRight;
+	float LookUp;
+	float LookRight;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UCameraComponent* Camera;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) USceneComponent* Transform;
+	FCollisionQueryParams CollisionParams;
+
 
 protected:
 	// Called when the game starts or when spawned
