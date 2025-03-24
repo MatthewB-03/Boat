@@ -37,6 +37,9 @@ void APlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Get rod actor
+	RodActor = Cast<APlayerRod>(RodChildActor->GetChildActor());
+
 	// Enable player input
 	EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 
@@ -46,8 +49,10 @@ void APlayerPawn::BeginPlay()
 	InputComponent->BindAxis("LookUp");
 	InputComponent->BindAxis("LookRight");
 
-	// Get rod actor
-	Rod = Cast<APlayerRod>(RodChildActor->GetChildActor());
+	// Bind mouse click to rod
+	InputComponent->BindAction("Click", EInputEvent::IE_Pressed, RodActor, &APlayerRod::MouseDown);
+	InputComponent->BindAction("Click", EInputEvent::IE_Released, RodActor, &APlayerRod::MouseUp);
+
 }
 
 // Called every frame
@@ -98,4 +103,5 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
+
 

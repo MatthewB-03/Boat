@@ -30,7 +30,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) USceneComponent* Transform;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) USceneComponent* RodTransformPosition;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UChildActorComponent* RodChildActor;
-	APlayerRod* Rod;
+	APlayerRod* RodActor;
 	FCollisionQueryParams CollisionParams;
 
 
