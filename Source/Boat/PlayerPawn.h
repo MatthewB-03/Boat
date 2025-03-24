@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "GameFramework/Pawn.h"
 #include "Camera/CameraActor.h"
+#include "PlayerRod.h"
 #include "math.h"
 #include "PlayerPawn.generated.h"
 
@@ -27,6 +28,9 @@ public:
 	float LookRight;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UCameraComponent* Camera;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) USceneComponent* Transform;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) USceneComponent* RodTransformPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UChildActorComponent* RodChildActor;
+	APlayerRod* Rod;
 	FCollisionQueryParams CollisionParams;
 
 

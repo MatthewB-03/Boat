@@ -12,7 +12,13 @@ APlayerPawn::APlayerPawn()
 
 	// Create components
 	Transform = CreateAbstractDefaultSubobject<USceneComponent>("Scene", false);
+	RodTransformPosition = CreateAbstractDefaultSubobject<USceneComponent>("RodPosition", false);
 	Camera = CreateAbstractDefaultSubobject<UCameraComponent>("Camera", false);
+	RodChildActor = CreateAbstractDefaultSubobject<UChildActorComponent>("RodChildActor", false);
+
+	// Attach rod to transform position
+	RodChildActor->SetupAttachment(RodTransformPosition);
+	RodTransformPosition->SetupAttachment(Transform);
 
 	// Set root transform
 	RootComponent = Transform;
@@ -39,7 +45,9 @@ void APlayerPawn::BeginPlay()
 	InputComponent->BindAxis("MoveRight");
 	InputComponent->BindAxis("LookUp");
 	InputComponent->BindAxis("LookRight");
-	
+
+	// Get rod actor
+	Rod = Cast<APlayerRod>(RodChildActor->GetChildActor());
 }
 
 // Called every frame
