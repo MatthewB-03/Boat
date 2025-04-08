@@ -11,6 +11,7 @@ APlayerRod::APlayerRod()
 
 	// Create components
 	Mesh = CreateAbstractDefaultSubobject<USkeletalMeshComponent>("Mesh", false);
+	Spline = CreateAbstractDefaultSubobject<USplineComponent>("Spline", false);
 
 	// Set root transform
 	RootComponent = Mesh;
@@ -30,6 +31,12 @@ void APlayerRod::BeginPlay()
 void APlayerRod::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Redefine spline points
+	Spline->ClearSplinePoints();
+	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(FMath::Lerp(FVector(0, 0, 0), Mesh->GetSocketLocation("RodEndSocket"), 0.5f)+FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(FVector(0, 0, 0), ESplineCoordinateSpace::Type::World, true);
 
 	// Update current state
 	if (CurrentState == RodState::Idle)
@@ -65,6 +72,9 @@ void APlayerRod::Tick(float DeltaTime)
 	{
 		AnimInstance->BlendAlpha = 1;
 	}
+
+	// Draw spline mesh
+	DrawSplineMesh();
 }
 
 // Called every frame in the idle state
@@ -125,5 +135,33 @@ void APlayerRod::MouseUp()
 {
 	MouseIsDown = false;
 	UE_LOG(LogTemp, Warning, TEXT("Released"));
+}
+
+// Draws the spline mesh
+void APlayerRod::DrawSplineMesh() 
+{
+	// Clear previous spline meshes
+	for (USplineMeshComponent* SplineMesh : SplineMeshes) 
+	{
+		SplineMesh->DestroyComponent();
+	}
+	SplineMeshes.Empty();
+
+	// Create new spline meshes
+	for (int i = 0; i < Spline->GetNumberOfSplinePoints() - 1; i++) 
+	{
+		USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(this);
+		SplineMesh->SetStaticMesh(SplineBaseMesh);
+		SplineMesh->SetMaterial(0, SplineMeshMaterial);
+		SplineMesh->Mobility = EComponentMobility::Movable;
+		SplineMesh->AttachToComponent(Spline, FAttachmentTransformRules::KeepRelativeTransform);
+		SplineMesh->SetForwardAxis(ESplineMeshAxis::Z);
+		SplineMesh->SetStartPosition(Spline->GetTransformAtSplinePoint(i, ESplineCoordinateSpace::Type::World).GetLocation(), true);
+		SplineMesh->SetEndPosition(Spline->GetTransformAtSplinePoint(i+1, ESplineCoordinateSpace::Type::World).GetLocation(), true);
+		SplineMesh->SetStartTangent(Spline->GetTangentAtSplinePoint(i, ESplineCoordinateSpace::Type::World), true);
+		SplineMesh->SetEndTangent(Spline->GetTangentAtSplinePoint(i+1, ESplineCoordinateSpace::Type::World), true);
+		SplineMesh->RegisterComponent();
+		SplineMeshes.Add(SplineMesh);
+	}
 }
 

@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "RodAnimInstance.h"
 #include "ERodState.h"
+#include "Components/SplineComponent.h"
+#include "Components/SplineMeshComponent.h"
 #include "PlayerRod.generated.h"
 
 UCLASS()
@@ -17,10 +19,14 @@ class BOAT_API APlayerRod : public AActor
 public:	
 	// Sets default values for this actor's properties
 	APlayerRod();
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) USkeletalMeshComponent* Mesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UStaticMesh* SplineBaseMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UMaterialInterface* SplineMeshMaterial;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float DrawSpeed = 0.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float StartReelingSpeed = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float StopReelingSpeed = 2;
+	USkeletalMeshComponent* Mesh;
+	USplineComponent* Spline;
+	TArray<USplineMeshComponent*> SplineMeshes;
 	URodAnimInstance* AnimInstance;
 	bool MouseIsDown;
 	TEnumAsByte<RodState> CurrentState = RodState::Idle;
@@ -53,5 +59,8 @@ public:
 
 	// Called when the mouse click is released
 	virtual void MouseUp();
+
+	// Draws the spline mesh
+	virtual void DrawSplineMesh();
 
 };
