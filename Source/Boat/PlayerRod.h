@@ -9,6 +9,7 @@
 #include "ERodState.h"
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
+#include "LineEnd.h"
 #include "PlayerRod.generated.h"
 
 UCLASS()
@@ -24,6 +25,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float DrawSpeed = 0.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float StartReelingSpeed = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float StopReelingSpeed = 2;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UChildActorComponent* LineEndChildActor;
+	ALineEnd* LineEndActor;
 	USkeletalMeshComponent* Mesh;
 	USplineComponent* Spline;
 	TArray<USplineMeshComponent*> SplineMeshes;

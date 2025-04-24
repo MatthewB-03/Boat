@@ -12,9 +12,13 @@ APlayerRod::APlayerRod()
 	// Create components
 	Mesh = CreateAbstractDefaultSubobject<USkeletalMeshComponent>("Mesh", false);
 	Spline = CreateAbstractDefaultSubobject<USplineComponent>("Spline", false);
+	LineEndChildActor = CreateAbstractDefaultSubobject<UChildActorComponent>("LineEndChildActor", false);
 
 	// Set root transform
 	RootComponent = Mesh;
+
+	// Attach Line End
+	LineEndChildActor->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -24,6 +28,9 @@ void APlayerRod::BeginPlay()
 
 	// Get animation instance
 	AnimInstance = Cast<URodAnimInstance>(Mesh->GetAnimInstance());
+
+	// Get line end actor
+	LineEndActor = Cast<ALineEnd>(LineEndChildActor->GetChildActor());
 	
 }
 
@@ -35,8 +42,12 @@ void APlayerRod::Tick(float DeltaTime)
 	// Redefine spline points
 	Spline->ClearSplinePoints();
 	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(FMath::Lerp(FVector(0, 0, 0), Mesh->GetSocketLocation("RodEndSocket"), 0.5f)+FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(FVector(0, 0, 0), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f)+FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
+
+
+	// Draw spline mesh
+	DrawSplineMesh();
 
 	// Update current state
 	if (CurrentState == RodState::Idle)
@@ -72,34 +83,42 @@ void APlayerRod::Tick(float DeltaTime)
 	{
 		AnimInstance->BlendAlpha = 1;
 	}
-
-	// Draw spline mesh
-	DrawSplineMesh();
 }
 
 // Called every frame in the idle state
 void APlayerRod::IdleTick(float DeltaTime)
 {
+	// Clear spline
+	Spline->ClearSplinePoints();
+
 	if (MouseIsDown) 
 	{
 		// Start drawing back rod
 		CurrentState = RodState::Drawing;
 		AnimInstance->BlendAlpha = 0;
 	}
+	LineEndActor->Falling = false;
+	LineEndActor->SetActorLocation(Mesh->GetSocketLocation("RodEndSocket"));
 }
 
 // Called every frame in the drawing state
 void APlayerRod::DrawingTick(float DeltaTime)
 {
+	// Clear spline
+	Spline->ClearSplinePoints();
+
 	if (MouseIsDown)
 	{
 		// Increase draw strength over time
 		AnimInstance->BlendAlpha += DeltaTime * DrawSpeed;
+		LineEndActor->Falling = false;
+		LineEndActor->SetActorLocation(Mesh->GetSocketLocation("RodEndSocket"));
 	}
 	else 
 	{
 		// Cast rod
 		CurrentState = RodState::Casting;
+		LineEndActor->Cast(GetActorForwardVector()*(0.5f + AnimInstance->BlendAlpha*2));
 	}
 }
 
@@ -111,16 +130,43 @@ void APlayerRod::CastingTick(float DeltaTime)
 		// Cancel cast wait
 		CurrentState = RodState::Idle;
 	}
+	// Redefine spline points
+	Spline->ClearSplinePoints();
+	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
+
+
+	// Draw spline mesh
+	DrawSplineMesh();
 }
 
 // Called every frame in the reeling state
 void APlayerRod::ReelingTick(float DeltaTime)
 {
+	// Redefine spline points
+	Spline->ClearSplinePoints();
+	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
+
+
+	// Draw spline mesh
+	DrawSplineMesh();
 }
 
 // Called every frame in the caught state
 void APlayerRod::CaughtTick(float DeltaTime)
 {
+	// Redefine spline points
+	Spline->ClearSplinePoints();
+	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
+
+
+	// Draw spline mesh
+	DrawSplineMesh();
 }
 
 // Called when the mouse is clicked down
