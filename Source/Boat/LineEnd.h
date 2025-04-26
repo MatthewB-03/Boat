@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
 #include "LineEnd.generated.h"
 
 UCLASS()
@@ -17,6 +18,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float SeaHeight = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float CastSpeed = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float FallAcceleration = 9.81f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UStaticMesh* HookModel;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UStaticMeshComponent* Mesh;
 
 	FVector Velocity;
 	bool Falling = false;

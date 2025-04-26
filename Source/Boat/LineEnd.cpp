@@ -9,12 +9,18 @@ ALineEnd::ALineEnd()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Create components
+	Mesh = CreateAbstractDefaultSubobject<UStaticMeshComponent>("Mesh", false);
+	
+	// Set root transform
+	RootComponent = Mesh;
 }
 
 // Called when the game starts or when spawned
 void ALineEnd::BeginPlay()
 {
 	Super::BeginPlay();
+	Mesh->SetStaticMesh(HookModel);
 }
 
 // Called every frame
