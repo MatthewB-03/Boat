@@ -31,6 +31,10 @@ void APlayerRod::BeginPlay()
 
 	// Get line end actor
 	LineEndActor = Cast<ALineEnd>(LineEndChildActor->GetChildActor());
+
+	// Disable Collision & Queries on mesh
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Mesh->SetCollisionProfileName("NoCollision");
 	
 }
 
@@ -50,6 +54,7 @@ void APlayerRod::Tick(float DeltaTime)
 	DrawSplineMesh();
 
 	// Update current state
+	StateTime += DeltaTime;
 	if (CurrentState == RodState::Idle)
 	{
 		IdleTick(DeltaTime);
@@ -91,13 +96,13 @@ void APlayerRod::IdleTick(float DeltaTime)
 	// Clear spline
 	Spline->ClearSplinePoints();
 
-	if (MouseIsDown) 
+	if (MouseIsDown && StateTime >= 0.1f) 
 	{
 		// Start drawing back rod
 		CurrentState = RodState::Drawing;
 		AnimInstance->BlendAlpha = 0;
 	}
-	LineEndActor->Falling = false;
+	LineEndActor->State = HookState::Idle;
 	LineEndActor->SetActorLocation(Mesh->GetSocketLocation("RodEndSocket"));
 }
 
@@ -111,13 +116,14 @@ void APlayerRod::DrawingTick(float DeltaTime)
 	{
 		// Increase draw strength over time
 		AnimInstance->BlendAlpha += DeltaTime * DrawSpeed;
-		LineEndActor->Falling = false;
+		LineEndActor->State = HookState::Idle;
 		LineEndActor->SetActorLocation(Mesh->GetSocketLocation("RodEndSocket"));
 	}
 	else 
 	{
 		// Cast rod
 		CurrentState = RodState::Casting;
+		StateTime = 0;
 		LineEndActor->Cast(GetActorForwardVector()*(0.5f + AnimInstance->BlendAlpha*2));
 	}
 }
@@ -129,6 +135,7 @@ void APlayerRod::CastingTick(float DeltaTime)
 	{
 		// Cancel cast wait
 		CurrentState = RodState::Idle;
+		StateTime = 0;
 	}
 	// Redefine spline points
 	Spline->ClearSplinePoints();
@@ -198,6 +205,8 @@ void APlayerRod::DrawSplineMesh()
 	{
 		USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(this);
 		SplineMesh->SetStaticMesh(SplineBaseMesh);
+		SplineMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SplineMesh->SetCollisionProfileName("NoCollision");
 		SplineMesh->SetMaterial(0, SplineMeshMaterial);
 		SplineMesh->Mobility = EComponentMobility::Movable;
 		SplineMesh->AttachToComponent(Spline, FAttachmentTransformRules::KeepRelativeTransform);

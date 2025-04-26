@@ -7,13 +7,13 @@
 #include "ERodState.generated.h"
 
 UENUM()
-enum RodState
+enum class RodState : uint8
 {
-	Idle UMETA(DisplayName = "Idle"),
-	Drawing UMETA(DisplayName = "Drawing"),
-	Casting UMETA(DisplayName = "Casting"),
-	Reeling UMETA(DisplayName = "Reeling"),
-	Caught UMETA(DisplayName = "Caught")
+	Idle = 0 UMETA(DisplayName = "Idle"),
+	Drawing = 1 UMETA(DisplayName = "Drawing"),
+	Casting = 2 UMETA(DisplayName = "Casting"),
+	Reeling = 3 UMETA(DisplayName = "Reeling"),
+	Caught = 4 UMETA(DisplayName = "Caught")
 };
 
 

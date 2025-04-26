@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "RodAnimInstance.h"
 #include "ERodState.h"
+#include "EHookState.h"
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
 #include "LineEnd.h"
@@ -35,6 +36,7 @@ public:
 	URodAnimInstance* AnimInstance;
 	bool MouseIsDown;
 	TEnumAsByte<RodState> CurrentState = RodState::Idle;
+	float StateTime = 0;
 
 protected:
 	// Called when the game starts or when spawned
