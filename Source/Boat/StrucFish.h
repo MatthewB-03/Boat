@@ -13,7 +13,9 @@ struct FStrucFish
 
 	public:
 		UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = "";
+		UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Determiner = "a";
 		UPROPERTY(EditAnywhere, BlueprintReadWrite) float Strength = 1;
+		UPROPERTY(EditAnywhere, BlueprintReadWrite) float PercentSwapDirection = 1.0f;
 		UPROPERTY(EditAnywhere, BlueprintReadWrite) float Rarity = 1;
 		UPROPERTY(EditAnywhere, BlueprintReadWrite) UStaticMesh* Mesh;
 		UPROPERTY(EditAnywhere, BlueprintReadWrite) UMaterialInterface* Material;

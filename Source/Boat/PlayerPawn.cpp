@@ -93,6 +93,18 @@ void APlayerPawn::Tick(float DeltaTime)
 	else if (GetActorRotation().Pitch < -45)
 		SetActorRotation(FRotator(-45, GetActorRotation().Yaw, GetActorRotation().Roll));
 
+	// Cap Yaw 0 - 360
+	if (GetActorRotation().Yaw > 360)
+		SetActorRotation(FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw - 360, GetActorRotation().Roll));
+	else if (GetActorRotation().Yaw < 0)
+		SetActorRotation(FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw + 360, GetActorRotation().Roll));
+
+	// Cap Roll 0 - 360
+	if (GetActorRotation().Roll > 360)
+		SetActorRotation(FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, GetActorRotation().Roll - 360));
+	else if (GetActorRotation().Roll < 0)
+		SetActorRotation(FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, GetActorRotation().Roll + 360));
+
 	// Update camera
 	Camera->SetRelativeLocation(Transform->GetComponentLocation());
 	Controller->SetControlRotation(GetActorRotation());

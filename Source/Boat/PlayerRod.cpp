@@ -39,18 +39,17 @@ void APlayerRod::BeginPlay()
 	// Add HUD to viewport
 	PlayerHud = CreateWidget<UPlayerHudWidget>(GetWorld(), PlayerHudType);
 	PlayerHud->AddToViewport();
-	
+
+	// Set random seed
+	std::chrono::system_clock::time_point Now = std::chrono::system_clock::now();
+	FMath::SRandInit(Now.time_since_epoch().count() * FMath::GetRandSeed());
+	FMath::RandInit(Now.time_since_epoch().count() * FMath::GetRandSeed());
 }
 
 // Called every frame
 void APlayerRod::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// Set random seed
-	std::chrono::system_clock::time_point Now = std::chrono::system_clock::now();
-	FMath::SRandInit(Now.time_since_epoch().count());
-	FMath::RandInit(Now.time_since_epoch().count());
 
 	// Update current state
 	StateTime += DeltaTime;
@@ -153,6 +152,8 @@ void APlayerRod::CastingTick(float DeltaTime)
 			StateTime = 0;
 			FishWaitTime = FMath::RandRange(5.0f, 10.0f);
 			FishType = GetRandomFish();
+			PlayerHud->StartFishGauge(FishType);
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Something's biting!")));
 		}
 	}
 
@@ -163,22 +164,102 @@ void APlayerRod::CastingTick(float DeltaTime)
 // Called every frame in the reeling state
 void APlayerRod::ReelingTick(float DeltaTime)
 {
+	
+	// If minigame failed
+	if (PlayerHud->GaugueCanvas->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		// Return to idle, wait 2 seconds for lost animation to play
+		CurrentState = RodState::Idle;
+		StateTime = -2;
+		LineEndActor->State = HookState::Idle;
+
+		// Random fail text
+		int RandInt = FMath::RandRange(0, 11);
+		if (RandInt == 0 || RandInt == 1)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Fish got away!  :(")));
+		}
+		else if (RandInt == 2 || RandInt == 3)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Fish got away.  :|")));
+		}
+		else if (RandInt == 4 || RandInt == 5)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Fish got away.  :')")));
+		}
+		else if (RandInt == 6 || RandInt == 7)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Fish escaped. . .")));
+		}
+		else if(RandInt == 8 || RandInt == 9)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Lost the fish. . .")));
+		}
+		else if (RandInt == 10)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + FishType.Determiner + " "+ FishType.Name + " - ooh, that one got away, didn't it, whoops.")));
+		}
+		else 
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Lost the " + FishType.Name + ". Uhh- I mean the fish.  (:")));
+		}
+	}
+	
+
+	// If minigame successful
+	if (StateTime >= FishWaitTime && CurrentState == RodState::Reeling)
+	{
+		// Hide minigame
+		PlayerHud->GaugueCanvas->SetVisibility(ESlateVisibility::Hidden);
+
+		// Catch fish
+		CurrentState = RodState::Caught;
+		StateTime = 0;
+		LineEndActor->SetModel(FishType.Mesh, FishType.Material);
+		LineEndActor->State = HookState::Idle;
+
+		// Random caught text
+		int RandInt = FMath::RandRange(0, 12);
+		if (RandInt == 0 || RandInt == 1)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + FishType.Determiner + " " + FishType.Name + "!")));
+		}
+		else if (RandInt == 2 || RandInt == 3)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + FishType.Determiner + " " + FishType.Name + "! YAY!!!")));
+		}
+		else if (RandInt == 4 || RandInt == 5)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Materfully caught " + FishType.Determiner + " " + FishType.Name + "!")));
+		}
+		else if (RandInt == 6 || RandInt == 7)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + FishType.Determiner + " " + FishType.Name + "! HOORAY!")));
+		}
+		else if (RandInt == 8 || RandInt == 9)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + FishType.Determiner + " " + FishType.Name + "!  :D")));
+		}
+		else if (RandInt == 10 || RandInt == 11)
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + FishType.Determiner + " " + FishType.Name + "!  :)")));
+		}
+		else 
+		{
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught the ultra rare void fish! JK it's just " + FishType.Determiner + " " + FishType.Name + ".  >:)")));
+		}
+	}
+
+	// If mouse down, reel
 	if (MouseIsDown)
 	{
 		AnimInstance->BlendAlpha += DeltaTime * 2;
+		PlayerHud->AddToGauge(-DeltaTime);
 	}
 	else
 	{
 		AnimInstance->BlendAlpha -= DeltaTime * 2;
-	}
-
-	if (StateTime >= FishWaitTime && CurrentState == RodState::Reeling)
-	{
-		CurrentState = RodState::Caught;
-		StateTime = 0;
-		PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + FishType.Name)));
-		LineEndActor->SetModel(FishType.Mesh, FishType.Material);
-		LineEndActor->State = HookState::Idle;
+		PlayerHud->AddToGauge(DeltaTime);
 	}
 
 	// Create straight rope
