@@ -60,6 +60,12 @@ void APlayerPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Cap DeltaTime (no turning / movement jumps if the game lags)
+	if (DeltaTime > 0.1f)
+	{
+		DeltaTime = 0.1f;
+	}
+
 	// Get input values
 	MoveForward = GetInputAxisValue("MoveForward");
 	MoveRight = GetInputAxisValue("MoveRight");

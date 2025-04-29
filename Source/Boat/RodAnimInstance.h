@@ -15,7 +15,7 @@ class BOAT_API URodAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) TEnumAsByte<RodState> CurrentState = RodState::Idle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) RodState CurrentState = RodState::Idle;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float BlendAlpha;
 	
 };

@@ -26,7 +26,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UMaterialInterface* HookMaterial;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UStaticMeshComponent* Mesh;
 	FVector Velocity;
-	TEnumAsByte<HookState> State = HookState::Idle;
+	HookState State = HookState::Idle;
 	FCollisionQueryParams CollisionParams;
 
 protected:

@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
+#include "SlateBasics.h"
+#include "SlateExtras.h"
 
 /**
  * 

@@ -45,7 +45,7 @@ public:
 	TArray<USplineMeshComponent*> SplineMeshes;
 	URodAnimInstance* AnimInstance;
 	bool MouseIsDown;
-	TEnumAsByte<RodState> CurrentState = RodState::Idle;
+	RodState CurrentState = RodState::Idle;
 	float StateTime = 0;
 	float FishWaitTime = 0;
 
