@@ -14,8 +14,8 @@ UCLASS()
 class BOAT_API ALineEnd : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ALineEnd();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float SeaHeight = 0.0f;
@@ -32,11 +32,17 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Casts the line in the given direction
 	virtual void Cast(FVector Direction);
+
+	// Sets the line end to a new model
+	virtual void SetModel(UStaticMesh* NewMesh);
+
+	// Resets to the hook model
+	virtual void ResetModel();
 
 };

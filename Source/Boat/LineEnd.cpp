@@ -86,5 +86,14 @@ void ALineEnd::Cast(FVector Direction)
 	State = HookState::Falling;
 }
 
+// Sets the line end to a new model
+void ALineEnd::SetModel(UStaticMesh* NewMesh)
+{
+	Mesh->SetStaticMesh(NewMesh);
+}
 
-
+// Resets to the hook model
+void ALineEnd::ResetModel()
+{
+	Mesh->SetStaticMesh(HookModel);
+}

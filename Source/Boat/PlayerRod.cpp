@@ -35,6 +35,10 @@ void APlayerRod::BeginPlay()
 	// Disable Collision & Queries on mesh
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Mesh->SetCollisionProfileName("NoCollision");
+
+	// Add HUD to viewport
+	PlayerHud = CreateWidget<UPlayerHudWidget>(GetWorld(), PlayerHudType);
+	PlayerHud->AddToViewport();
 	
 }
 
@@ -43,15 +47,10 @@ void APlayerRod::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Redefine spline points
-	Spline->ClearSplinePoints();
-	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f)+FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
-
-
-	// Draw spline mesh
-	DrawSplineMesh();
+	// Set random seed
+	std::chrono::system_clock::time_point Now = std::chrono::system_clock::now();
+	FMath::SRandInit(Now.time_since_epoch().count());
+	FMath::RandInit(Now.time_since_epoch().count());
 
 	// Update current state
 	StateTime += DeltaTime;
@@ -75,6 +74,12 @@ void APlayerRod::Tick(float DeltaTime)
 	{
 		CaughtTick(DeltaTime);
 	}
+
+	// Draw spline mesh
+	DrawSplineMesh();
+
+	// Update UI
+	PlayerHud->UpdateUI(DeltaTime);
 
 	// Update animation state
 	AnimInstance->CurrentState = CurrentState;
@@ -124,6 +129,7 @@ void APlayerRod::DrawingTick(float DeltaTime)
 		// Cast rod
 		CurrentState = RodState::Casting;
 		StateTime = 0;
+		FishWaitTime = FMath::RandRange(10.0f, 30.0f);
 		LineEndActor->Cast(GetActorForwardVector()*(0.5f + AnimInstance->BlendAlpha*2));
 	}
 }
@@ -137,43 +143,42 @@ void APlayerRod::CastingTick(float DeltaTime)
 		CurrentState = RodState::Idle;
 		StateTime = 0;
 	}
-	// Redefine spline points
-	Spline->ClearSplinePoints();
-	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
+	else if (LineEndActor->State == HookState::InWater) 
+	{
+		if (StateTime >= FishWaitTime) 
+		{
+			// Start reeling
+			CurrentState = RodState::Reeling;
+			StateTime = 0;
+			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + GetRandomFish().Name)));
+		}
+	}
 
-
-	// Draw spline mesh
-	DrawSplineMesh();
+	// Create curved rope
+	CreateSplineCurved();
 }
 
 // Called every frame in the reeling state
 void APlayerRod::ReelingTick(float DeltaTime)
 {
-	// Redefine spline points
-	Spline->ClearSplinePoints();
-	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
+	if (MouseIsDown)
+	{
+		AnimInstance->BlendAlpha += DeltaTime * 2;
+	}
+	else
+	{
+		AnimInstance->BlendAlpha -= DeltaTime * 2;
+	}
 
-
-	// Draw spline mesh
-	DrawSplineMesh();
+	// Create straight rope
+	CreateSplineStraight();
 }
 
 // Called every frame in the caught state
 void APlayerRod::CaughtTick(float DeltaTime)
 {
-	// Redefine spline points
-	Spline->ClearSplinePoints();
-	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
-
-
-	// Draw spline mesh
-	DrawSplineMesh();
+	// Create straight rope
+	CreateSplineStraight();
 }
 
 // Called when the mouse is clicked down
@@ -190,7 +195,56 @@ void APlayerRod::MouseUp()
 	UE_LOG(LogTemp, Warning, TEXT("Released"));
 }
 
-// Draws the spline mesh
+// Gets a random fish type from the array
+FStrucFish APlayerRod::GetRandomFish() 
+{
+	float TotalWeight = 0.0f;
+	for (int i = 0; i < FishTypes.Num(); i++) 
+	{
+		TotalWeight += 1/FishTypes[i].Rarity;
+	}
+
+	float RandomValue = FMath::RandRange(0.0f, TotalWeight);
+
+	float CurrentWeight = 0.0f;
+	for (int i = 0; i < FishTypes.Num(); i++)
+	{
+		CurrentWeight += 1 / FishTypes[i].Rarity;
+		if (RandomValue <= CurrentWeight)
+		{
+			return FishTypes[i];
+		}
+	}
+
+	return FishTypes[0];
+}
+
+// Defines and draws a straight spline mesh
+void APlayerRod::CreateSplineStraight()
+{
+	// Clear spline
+	Spline->ClearSplinePoints();
+
+	// Redefine spline points
+	Spline->ClearSplinePoints();
+	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
+}
+
+// Defines and draws a curved spline mesh
+void APlayerRod::CreateSplineCurved()
+{
+	// Clear spline
+	Spline->ClearSplinePoints();
+
+	// Redefine spline points
+	Spline->ClearSplinePoints();
+	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
+}
+
+// Draws a spline mesh around the current spline
 void APlayerRod::DrawSplineMesh() 
 {
 	// Clear previous spline meshes
