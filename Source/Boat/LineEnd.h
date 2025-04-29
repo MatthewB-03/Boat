@@ -23,6 +23,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float FallAcceleration = 9.81f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float CollisionRadius = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UStaticMesh* HookModel;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UMaterialInterface* HookMaterial;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UStaticMeshComponent* Mesh;
 	FVector Velocity;
 	TEnumAsByte<HookState> State = HookState::Idle;
@@ -40,7 +41,7 @@ public:
 	virtual void Cast(FVector Direction);
 
 	// Sets the line end to a new model
-	virtual void SetModel(UStaticMesh* NewMesh);
+	virtual void SetModel(UStaticMesh* NewMesh, UMaterialInterface* NewMaterial);
 
 	// Resets to the hook model
 	virtual void ResetModel();

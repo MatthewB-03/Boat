@@ -105,6 +105,7 @@ void APlayerRod::IdleTick(float DeltaTime)
 	{
 		// Start drawing back rod
 		CurrentState = RodState::Drawing;
+		StateTime = 0;
 		AnimInstance->BlendAlpha = 0;
 	}
 	LineEndActor->State = HookState::Idle;
@@ -150,7 +151,8 @@ void APlayerRod::CastingTick(float DeltaTime)
 			// Start reeling
 			CurrentState = RodState::Reeling;
 			StateTime = 0;
-			PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + GetRandomFish().Name)));
+			FishWaitTime = FMath::RandRange(5.0f, 10.0f);
+			FishType = GetRandomFish();
 		}
 	}
 
@@ -170,6 +172,15 @@ void APlayerRod::ReelingTick(float DeltaTime)
 		AnimInstance->BlendAlpha -= DeltaTime * 2;
 	}
 
+	if (StateTime >= FishWaitTime && CurrentState == RodState::Reeling)
+	{
+		CurrentState = RodState::Caught;
+		StateTime = 0;
+		PlayerHud->ShowCaughtText(FText::FromString(TEXT("Caught " + FishType.Name)));
+		LineEndActor->SetModel(FishType.Mesh, FishType.Material);
+		LineEndActor->State = HookState::Idle;
+	}
+
 	// Create straight rope
 	CreateSplineStraight();
 }
@@ -179,6 +190,18 @@ void APlayerRod::CaughtTick(float DeltaTime)
 {
 	// Create straight rope
 	CreateSplineStraight();
+
+	LineEndActor->SetActorLocation(Mesh->GetSocketLocation("RodEndSocket") + FVector(0, 0, CaughtFishZOffset));
+
+	if (MouseIsDown && StateTime >= 1)
+	{
+		// Reset hook model
+		LineEndActor->ResetModel();
+
+		// Return to idle
+		CurrentState = RodState::Idle;
+		StateTime = 0;
+	}
 }
 
 // Called when the mouse is clicked down
@@ -240,7 +263,7 @@ void APlayerRod::CreateSplineCurved()
 	// Redefine spline points
 	Spline->ClearSplinePoints();
 	Spline->AddSplinePoint(Mesh->GetSocketLocation("RodEndSocket"), ESplineCoordinateSpace::Type::World, true);
-	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, -20), ESplineCoordinateSpace::Type::World, true);
+	Spline->AddSplinePoint(FMath::Lerp(LineEndActor->GetActorLocation(), Mesh->GetSocketLocation("RodEndSocket"), 0.5f) + FVector(0, 0, LineRopeDip), ESplineCoordinateSpace::Type::World, true);
 	Spline->AddSplinePoint(LineEndActor->GetActorLocation(), ESplineCoordinateSpace::Type::World, true);
 }
 

@@ -24,7 +24,7 @@ ALineEnd::ALineEnd()
 void ALineEnd::BeginPlay()
 {
 	Super::BeginPlay();
-	Mesh->SetStaticMesh(HookModel);
+	ResetModel();
 
 	// Disable Collision & Queries on mesh
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -87,13 +87,15 @@ void ALineEnd::Cast(FVector Direction)
 }
 
 // Sets the line end to a new model
-void ALineEnd::SetModel(UStaticMesh* NewMesh)
+void ALineEnd::SetModel(UStaticMesh* NewMesh, UMaterialInterface* NewMaterial)
 {
 	Mesh->SetStaticMesh(NewMesh);
+	Mesh->SetMaterial(0, NewMaterial);
 }
 
 // Resets to the hook model
 void ALineEnd::ResetModel()
 {
 	Mesh->SetStaticMesh(HookModel);
+	Mesh->SetMaterial(0, HookMaterial);
 }

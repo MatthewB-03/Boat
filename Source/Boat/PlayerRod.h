@@ -35,6 +35,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) UChildActorComponent* LineEndChildActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) TSubclassOf<UPlayerHudWidget> PlayerHudType;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) TArray<FStrucFish> FishTypes;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float CaughtFishZOffset = -20;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes) float LineRopeDip = -20;
 	FStrucFish FishType;
 	UPlayerHudWidget* PlayerHud;
 	ALineEnd* LineEndActor;
