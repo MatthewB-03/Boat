@@ -90,14 +90,22 @@ void APlayerPawn::Tick(float DeltaTime)
 	}
 
 	// Rotate player
-	SetActorRotation(GetActorRotation() + LookUp * TurnSpeed * DeltaTime * FRotator(1.0f, 0.0f, 0.0f));
 	SetActorRotation(GetActorRotation() + LookRight * TurnSpeed * DeltaTime * FRotator(0.0f, 1.0f, 0.0f));
 
 	// Max/Min looking pitch
-	if (GetActorRotation().Pitch > 45)
+	float PitchValue = LookUp * TurnSpeed * DeltaTime;
+	if (GetActorRotation().Pitch + PitchValue < 45 && GetActorRotation().Pitch + PitchValue > -45)
+	{
+		SetActorRotation(GetActorRotation() + FRotator(PitchValue, 0.0f, 0.0f));
+	}
+	else if (GetActorRotation().Pitch + PitchValue > 45)
+	{
 		SetActorRotation(FRotator(45, GetActorRotation().Yaw, GetActorRotation().Roll));
-	else if (GetActorRotation().Pitch < -45)
+	}
+	else if (GetActorRotation().Pitch + PitchValue < -45)
+	{
 		SetActorRotation(FRotator(-45, GetActorRotation().Yaw, GetActorRotation().Roll));
+	}
 
 	// Cap Yaw 0 - 360
 	if (GetActorRotation().Yaw > 360)
